@@ -1,0 +1,11 @@
+{
+  "name": "aws_frontend",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "workspaces": [
+    "apps/*",
+    "infrastructure",
+    "packages/*"
+  ]
+}
