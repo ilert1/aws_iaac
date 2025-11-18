@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@aws-sdk/client-translate": "^3.932.0",
+    "@sff/shared-types": "*",
     "@types/aws-lambda": "^8.10.158",
     "@types/jest": "^29.5.14",
     "@types/node": "22.7.9",

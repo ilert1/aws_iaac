@@ -1,27 +1,35 @@
 "use client";
 import { useState } from "react";
+import { ITranslateRequest, ITranslateResponse } from "@sff/shared-types";
 
 const URL = "https://ugmg3jnit4.execute-api.us-east-1.amazonaws.com/prod/";
 
-async function translateText(input: {
+async function translateText({
+  inputLang,
+  outLang,
+  text,
+}: {
   inputLang: string;
   outLang: string;
   text: string;
 }) {
   try {
+    const req: ITranslateRequest = {
+      sourceLang: inputLang,
+      sourceText: text,
+      targetLang: outLang,
+    };
+
     const response = await fetch(URL, {
       method: "POST",
-      body: JSON.stringify({
-        sourceLanguage: input.inputLang,
-        targetLanguages: input.outLang,
-        text: input.text,
-      }),
+      body: JSON.stringify(req),
     });
 
-    return response.json();
+    return (await response.json()) as ITranslateResponse;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    return error.toString();
+    console.error(error);
+    throw error;
   }
 }
 
@@ -29,7 +37,7 @@ export default function Home() {
   const [inputText, setInputText] = useState("");
   const [inputLang, setInputLang] = useState("");
   const [outputLang, setOutputLang] = useState("");
-  const [outputText, setOutputText] = useState("");
+  const [outputText, setOutputText] = useState<ITranslateResponse | null>(null);
 
   return (
     <div className="flex flex-col min-h-screen items-center justify-between p-24">
@@ -77,18 +85,8 @@ export default function Home() {
         <button type="submit" className="btn bg-blue-500 p-2 mt-2 rounded-xl">
           Translate
         </button>
-
-        <div>
-          <label htmlFor="outputText">Output text</label>
-          <textarea
-            className="bg-white"
-            id="outputText"
-            value={outputText}
-            onChange={(e) => setOutputText(e.target.value)}
-          />
-        </div>
       </form>
-      <pre>{outputText}</pre>
+      <pre>{JSON.stringify(outputText)}</pre>
     </div>
   );
 }

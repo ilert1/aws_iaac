@@ -5,7 +5,7 @@ Content-Type: application/json
 Accept: application/json
 
 {
-    "sourceLanguage": "en",
-    "targetLanguages": "hy",
-    "text": "walk"
+    "sourceLang": "en",
+    "targetLang": "hy",
+    "sourceText": "walk"
 }
