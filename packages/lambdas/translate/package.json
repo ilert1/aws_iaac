@@ -2,9 +2,11 @@
   "name": "@sff/translate",
   "version": "1.0.0",
   "main": "idnex.ts",
-  "devDependenices": {
+  "devDependencies": {
     "@types/node": "22.7.9",
     "ts-node": "^10.9.2",
+    "@aws-sdk/client-dynamodb": "^3.934.0",
+    "@aws-sdk/util-dynamodb": "^3.934.0",
     "@sff/shared-types": "*"
   }
 }
