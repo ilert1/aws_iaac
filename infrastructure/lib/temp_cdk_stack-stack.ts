@@ -11,8 +11,10 @@ export class TempCdkStackStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    // project paths
     const projectRoot = "../";
     const lambdaPath = path.join(projectRoot, "packages/lambdas");
+    const lambdaLayersPath = path.join(projectRoot, "packages/lambda-layers");
 
     // DynamoDb
     const table = new dynamodb.Table(this, "translations", {
@@ -43,6 +45,16 @@ export class TempCdkStackStack extends cdk.Stack {
       path.join(lambdaPath, "translate/index.ts")
     );
 
+    const utilsLayerPath = path.resolve(
+      path.join(lambdaLayersPath, "utils-lambda-layer")
+    );
+
+    const utilsLambdaLayer = new lambda.LayerVersion(this, "utilsLambdaLayer", {
+      code: lambda.Code.fromAsset(utilsLayerPath),
+      compatibleRuntimes: [lambda.Runtime.NODEJS_22_X],
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
     // The API Gateway
     const restApi = new apigw.RestApi(this, "translateRestApi");
 
@@ -54,10 +66,12 @@ export class TempCdkStackStack extends cdk.Stack {
         entry: translateLambdaPath,
         handler: "translate",
         runtime: lambda.Runtime.NODEJS_22_X,
-        bundling: {
-          forceDockerBundling: false,
-        },
+
         initialPolicy: [translateServicePolicy, translateTablePolicy],
+        layers: [utilsLambdaLayer],
+        bundling: {
+          externalModules: ["/opt/nodejs/utils-lambda-layer"],
+        },
         environment: {
           TRANSLATION_TABLE_NAME: table.tableName,
           TRANSLATION_PARTITION_KEY: "requestId",
@@ -82,6 +96,7 @@ export class TempCdkStackStack extends cdk.Stack {
           forceDockerBundling: false,
         },
         initialPolicy: [translateTablePolicy],
+        layers: [utilsLambdaLayer],
         environment: {
           TRANSLATION_TABLE_NAME: table.tableName,
           TRANSLATION_PARTITION_KEY: "requestId",

@@ -1,8 +1,10 @@
-import * as clientTranslation from "@aws-sdk/client-translate";
-import * as dynamoDb from "@aws-sdk/client-dynamodb";
-import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import * as lambda from "aws-lambda";
-import { gateway } from "/opt/nodejs/utils-lambda-layers";
+import {
+  gateway,
+  translateClient,
+  exception,
+  TranslationTable,
+} from "/opt/nodejs/utils-lambda-layers";
 import {
   ITranslateDbObject,
   ITranslateRequest,
@@ -10,23 +12,18 @@ import {
 } from "@sff/shared-types";
 
 const { TRANSLATION_TABLE_NAME, TRANSLATION_PARTITION_KEY } = process.env;
-console.log(
-  "TRANSLATION_TABLE_NAME & TRANSLATION_PARTITION_KEY",
-  TRANSLATION_TABLE_NAME,
-  TRANSLATION_PARTITION_KEY
-);
 
 if (!TRANSLATION_TABLE_NAME) {
-  throw new Error("TRANSLATION_TABLE_NAME is not set");
+  throw new exception.MissingEnvVarError("TRANSLATION_TABLE_NAME");
 }
 if (!TRANSLATION_PARTITION_KEY) {
-  throw new Error("TRANSLATION_PARTITION_KEY is not set");
+  throw new exception.MissingEnvVarError("TRANSLATION_PARTITION_KEY");
 }
 
-const translateClient = new clientTranslation.TranslateClient({
-  region: "us-east-1",
+const translateTable = new TranslationTable({
+  partitionKey: TRANSLATION_PARTITION_KEY,
+  tableName: TRANSLATION_TABLE_NAME,
 });
-const dynamoDbClient = new dynamoDb.DynamoDBClient({});
 
 export const translate: lambda.APIGatewayProxyHandler = async function (
   event: lambda.APIGatewayProxyEvent,
@@ -34,24 +31,20 @@ export const translate: lambda.APIGatewayProxyHandler = async function (
 ) {
   try {
     if (!event.body) {
-      throw new Error("No body provided");
+      throw new exception.MissingBodyData();
     }
 
     const body = JSON.parse(event.body) as ITranslateRequest;
-    const { sourceLang, sourceText, targetLang } = body;
 
-    const translateCmd = new clientTranslation.TranslateTextCommand({
-      Text: sourceText,
-      SourceLanguageCode: sourceLang,
-      TargetLanguageCode: targetLang,
-    });
+    if (!body.sourceLang) throw new exception.MissingParameters("sourceLnang");
+    if (!body.sourceText) throw new exception.MissingParameters("sourceText");
+    if (!body.targetLang) throw new exception.MissingParameters("targetLang");
 
-    const result = await translateClient.send(translateCmd);
-    console.log(result);
+    const translateData = body;
+    const result = await translateClient.translate(translateData);
 
-    if (!result.TranslatedText) {
-      throw new Error("Translation if empty");
-    }
+    if (!result.TranslatedText)
+      throw new exception.MissingParameters("TranslationText");
 
     const rtnData: ITranslateResponse = {
       timestamp: new Date(Date.now()).toString(),
@@ -64,15 +57,7 @@ export const translate: lambda.APIGatewayProxyHandler = async function (
       ...body,
       ...rtnData,
     };
-
-    const tableInsertCmd: dynamoDb.PutItemCommandInput = {
-      TableName: TRANSLATION_TABLE_NAME,
-      Item: marshall(tableObj),
-    };
-
-    await dynamoDbClient.send(new dynamoDb.PutItemCommand(tableInsertCmd));
-
-    console.log(rtnData);
+    translateTable.insert(tableObj);
 
     return gateway.createSuccessJsonResponse(JSON.stringify(rtnData));
   } catch (error: any) {
@@ -81,35 +66,14 @@ export const translate: lambda.APIGatewayProxyHandler = async function (
   }
 };
 
-export const getTranslations: lambda.APIGatewayProxyHandler = async function (
-  event: lambda.APIGatewayProxyEvent,
-  context: lambda.Context
-) {
-  try {
-    const tableScanCmd: dynamoDb.ScanCommandInput = {
-      TableName: TRANSLATION_TABLE_NAME,
-    };
+export const getTranslations: lambda.APIGatewayProxyHandler =
+  async function () {
+    try {
+      const rtnData = await translateTable.getAll();
+      return gateway.createSuccessJsonResponse(JSON.stringify(rtnData));
+    } catch (error: any) {
+      console.log(error);
 
-    console.log("Scan:cmd : ", tableScanCmd);
-
-    const tableScanCmdOutput = await dynamoDbClient.send(
-      new dynamoDb.ScanCommand(tableScanCmd)
-    );
-
-    if (!tableScanCmdOutput.Items) {
-      throw new Error("No items found");
+      return gateway.createErrorJsonResponse(JSON.stringify(error.toString()));
     }
-
-    const rtnData = tableScanCmdOutput.Items.map(
-      (item) => unmarshall(item) as ITranslateDbObject
-    );
-
-    console.log("Scan:output : ", rtnData);
-
-    return gateway.createSuccessJsonResponse(JSON.stringify(rtnData));
-  } catch (error: any) {
-    console.log(error);
-
-    return gateway.createErrorJsonResponse(JSON.stringify(error.toString()));
-  }
-};
+  };
