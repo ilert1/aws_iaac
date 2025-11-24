@@ -1,8 +1,12 @@
 "use client";
 import { useState } from "react";
-import { ITranslateRequest, ITranslateResponse } from "@sff/shared-types";
+import {
+  ITranslateDbObject,
+  ITranslateRequest,
+  ITranslateResponse,
+} from "@sff/shared-types";
 
-const URL = "https://ugmg3jnit4.execute-api.us-east-1.amazonaws.com/prod/";
+const URL = "https://087fx1w7y8.execute-api.us-east-1.amazonaws.com/prod/";
 
 async function translateText({
   inputLang,
@@ -33,11 +37,26 @@ async function translateText({
   }
 }
 
+async function getTranslations() {
+  try {
+    const response = await fetch(URL, {
+      method: "GET",
+    });
+
+    return (await response.json()) as ITranslateDbObject[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error(error);
+    throw error;
+  }
+}
+
 export default function Home() {
   const [inputText, setInputText] = useState("");
   const [inputLang, setInputLang] = useState("");
   const [outputLang, setOutputLang] = useState("");
   const [outputText, setOutputText] = useState<ITranslateResponse | null>(null);
+  const [translations, setTranslations] = useState<ITranslateDbObject[]>([]);
 
   return (
     <div className="flex flex-col min-h-screen items-center justify-between p-24">
@@ -87,6 +106,19 @@ export default function Home() {
         </button>
       </form>
       <pre>{JSON.stringify(outputText)}</pre>
+
+      <button
+        className="btn bg-blue-500 p-2 mt-2 rounded-xl"
+        onClick={async () => {
+          const res = await getTranslations();
+          setTranslations(res);
+        }}
+      >
+        Get translations
+      </button>
+      <pre className="w-full" style={{ whiteSpace: "pre-wrap" }}>
+        {JSON.stringify(translations)}
+      </pre>
     </div>
   );
 }
