@@ -2,6 +2,7 @@ import * as clientTranslation from "@aws-sdk/client-translate";
 import * as dynamoDb from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import * as lambda from "aws-lambda";
+import { gateway } from "/opt/nodejs/utils-lambda-layers";
 import {
   ITranslateDbObject,
   ITranslateRequest,
@@ -73,30 +74,10 @@ export const translate: lambda.APIGatewayProxyHandler = async function (
 
     console.log(rtnData);
 
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Credentials": true,
-        "Access-Control-Allow-Methods": "*",
-        "Access-Control-Allow-Headers": "*",
-      },
-
-      body: JSON.stringify(rtnData),
-    };
+    return gateway.createSuccessJsonResponse(JSON.stringify(rtnData));
   } catch (error: any) {
     console.log(error);
-
-    return {
-      statusCode: 500,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Credentials": true,
-        "Access-Control-Allow-Methods": "*",
-        "Access-Control-Allow-Headers": "*",
-      },
-      body: JSON.stringify(error.toString()),
-    };
+    return gateway.createErrorJsonResponse(JSON.stringify(error.toString()));
   }
 };
 
@@ -125,29 +106,10 @@ export const getTranslations: lambda.APIGatewayProxyHandler = async function (
 
     console.log("Scan:output : ", rtnData);
 
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Credentials": true,
-        "Access-Control-Allow-Methods": "*",
-        "Access-Control-Allow-Headers": "*",
-      },
-
-      body: JSON.stringify(rtnData),
-    };
+    return gateway.createSuccessJsonResponse(JSON.stringify(rtnData));
   } catch (error: any) {
     console.log(error);
 
-    return {
-      statusCode: 500,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Credentials": true,
-        "Access-Control-Allow-Methods": "*",
-        "Access-Control-Allow-Headers": "*",
-      },
-      body: JSON.stringify(error.toString()),
-    };
+    return gateway.createErrorJsonResponse(JSON.stringify(error.toString()));
   }
 };
