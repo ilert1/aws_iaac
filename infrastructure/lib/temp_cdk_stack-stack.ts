@@ -6,6 +6,10 @@ import * as lambdaNodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as apigw from "aws-cdk-lib/aws-apigateway";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as s3 from "aws-cdk-lib/aws-s3";
+import * as s3Deploy from "aws-cdk-lib/aws-s3-deployment";
+// import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
+// import * as cloudfrontOrigins from "aws-cdk-lib/aws-cloudfront-origins";
 
 export class TempCdkStackStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -108,5 +112,60 @@ export class TempCdkStackStack extends cdk.Stack {
       "GET",
       new apigw.LambdaIntegration(getTranslationsLambda)
     );
+
+    // S3 bucket for website
+    const bucket = new s3.Bucket(this, "websiteBucket", {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      websiteIndexDocument: "index.html",
+      websiteErrorDocument: "404.html",
+      publicReadAccess: true,
+      blockPublicAccess: {
+        blockPublicAcls: false,
+        blockPublicPolicy: false,
+        ignorePublicAcls: false,
+        restrictPublicBuckets: false,
+      },
+      autoDeleteObjects: true,
+    });
+
+    // const distribution = new cloudfront.Distribution(this, "distro", {
+    //   defaultBehavior: {
+    //     origin: new cloudfrontOrigins.S3StaticWebsiteOrigin(bucket),
+    //     viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    //   },
+    //   defaultRootObject: "index.html",
+    // });
+
+    // const distribution = new cloudfront.CloudFrontWebDistribution(
+    //   this,
+    //   "distro",
+    //   {
+    //     originConfigs: [
+    //       {
+    //         s3OriginSource: {
+    //           s3BucketSource: bucket,
+    //         },
+    //         behaviors: [
+    //           {
+    //             isDefaultBehavior: true,
+    //           },
+    //         ],
+    //       },
+    //     ],
+    //   }
+    // );
+
+    // S3 bucket deployment for website
+    new s3Deploy.BucketDeployment(this, "deployWebsite", {
+      sources: [s3Deploy.Source.asset("../apps/frontend/dist")],
+      destinationBucket: bucket,
+      // distribution: distribution,
+      // distributionPaths: ["/*"],
+    });
+
+    // new cdk.CfnOutput(this, "webUrl", {
+    //   exportName: "webUrl",
+    //   value: `${distribution.domainName}`,
+    // });
   }
 }

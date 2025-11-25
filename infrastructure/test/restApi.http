@@ -1,5 +1,4 @@
-@URL=https://087fx1w7y8.execute-api.us-east-1.amazonaws.com/prod/
-
+@URL=https://g9hpa0pahg.execute-api.us-east-1.amazonaws.com/prod
 POST {{URL}} HTTP/1.1
 Content-Type: application/json
 Accept: application/json

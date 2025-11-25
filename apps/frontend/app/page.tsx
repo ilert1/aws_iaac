@@ -6,7 +6,7 @@ import {
   ITranslateResponse,
 } from "@sff/shared-types";
 
-const URL = "https://087fx1w7y8.execute-api.us-east-1.amazonaws.com/prod/";
+const URL = "https://g9hpa0pahg.execute-api.us-east-1.amazonaws.com/prod";
 
 async function translateText({
   inputLang,
