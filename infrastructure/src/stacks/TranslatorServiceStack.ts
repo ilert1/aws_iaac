@@ -5,6 +5,7 @@ import {
 	RestApiService,
 	StaticWebsiteDeploymentService,
 	TranslationService,
+	UserAuthSupportService,
 } from "../constructs";
 import { getConfig, lambdaLayersDirPath, lambdasDirPath } from "../helpers";
 
@@ -27,6 +28,9 @@ export class TranslatorServiceStack extends cdk.Stack {
 				apiUrl,
 			},
 		);
+
+		// User Auth Support
+		const userAuth = new UserAuthSupportService(this, "userAuthSupportService");
 
 		// The API Gateway
 		const restApiService = new RestApiService(this, "restApiService", {
