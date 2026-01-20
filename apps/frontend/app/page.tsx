@@ -5,27 +5,63 @@ import {
 	ITranslateRequest,
 	ITranslateResponse,
 } from "@sff/shared-types";
+import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
 
 // const URL = "https://g9hpa0pahg.execute-api.us-east-1.amazonaws.com/prod";
 const URL = "https://api.translateappdemo.site";
 
-async function translateText({
+async function translateUsersText({
 	inputLang,
-	outLang,
-	text,
+	outputLang,
+	inputText,
 }: {
 	inputLang: string;
-	outLang: string;
-	text: string;
+	outputLang: string;
+	inputText: string;
 }) {
 	try {
 		const req: ITranslateRequest = {
 			sourceLang: inputLang,
-			sourceText: text,
-			targetLang: outLang,
+			sourceText: inputText,
+			targetLang: outputLang,
 		};
 
-		const response = await fetch(URL, {
+		const authSession = await fetchAuthSession();
+		const token = authSession.tokens?.idToken?.toString();
+
+		const response = await fetch(`${URL}/user`, {
+			method: "POST",
+			body: JSON.stringify(req),
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+		return (await response.json()) as ITranslateResponse;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	} catch (error: any) {
+		console.error(error);
+		throw error;
+	}
+}
+
+async function translatePublicText({
+	inputLang,
+	outputLang,
+	inputText,
+}: {
+	inputLang: string;
+	outputLang: string;
+	inputText: string;
+}) {
+	try {
+		const req: ITranslateRequest = {
+			sourceLang: inputLang,
+			sourceText: inputText,
+			targetLang: outputLang,
+		};
+
+		const response = await fetch(`${URL}/public`, {
 			method: "POST",
 			body: JSON.stringify(req),
 		});
@@ -38,10 +74,37 @@ async function translateText({
 	}
 }
 
-async function getTranslations() {
+async function getUsersTranslations() {
 	try {
-		const response = await fetch(URL, {
+		const authSession = await fetchAuthSession();
+		const token = authSession.tokens?.idToken?.toString();
+
+		const response = await fetch(`${URL}/user`, {
 			method: "GET",
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+		return (await response.json()) as ITranslateDbObject[];
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	} catch (error: any) {
+		console.error(error);
+		throw error;
+	}
+}
+
+async function deleteUserTranslation(id: string) {
+	try {
+		const authSession = await fetchAuthSession();
+		const token = authSession.tokens?.idToken?.toString();
+
+		const response = await fetch(`${URL}/user`, {
+			method: "DELETE",
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify({ requestId: id }),
 		});
 
 		return (await response.json()) as ITranslateDbObject[];
@@ -60,66 +123,118 @@ export default function Home() {
 	const [translations, setTranslations] = useState<ITranslateDbObject[]>([]);
 
 	return (
-		<div className="flex flex-col min-h-screen items-center justify-between p-24">
+		<main className="flex flex-col m-8">
 			<form
+				className="flex flex-col space-y-4"
 				onSubmit={async (event) => {
 					event.preventDefault();
-					const res = await translateText({
-						inputLang: inputLang,
-						outLang: outputLang,
-						text: inputText,
-					});
-					setOutputText(res);
+
+					let result = null;
+
+					try {
+						const user = await getCurrentUser();
+
+						if (user) {
+							result = await translateUsersText({
+								inputLang,
+								outputLang,
+								inputText,
+							});
+						} else {
+							throw new Error("User not logged in");
+						}
+					} catch (error) {
+						result = await translatePublicText({
+							inputLang,
+							outputLang,
+							inputText,
+						});
+					}
+
+					console.log(result);
+					setOutputText(result);
 				}}
 			>
 				<div>
-					<label htmlFor="inputText">Input text</label>
+					<label htmlFor="inputText">Input text:</label>
 					<textarea
-						className="bg-white"
 						id="inputText"
 						value={inputText}
 						onChange={(e) => setInputText(e.target.value)}
+						rows={3}
+						className="bg-white"
 					/>
 				</div>
 
 				<div>
-					<label htmlFor="inputLang">Input language</label>
+					<label htmlFor="inputLang">Input Language:</label>
 					<input
-						className="bg-white"
 						id="inputLang"
+						className="bg-white"
+						type="text"
 						value={inputLang}
 						onChange={(e) => setInputLang(e.target.value)}
 					/>
 				</div>
 
 				<div>
-					<label htmlFor="outputLang">Output language</label>
+					<label htmlFor="outputLang">Output Language:</label>
 					<input
-						className="bg-white"
 						id="outputLang"
+						className="bg-white"
+						type="text"
 						value={outputLang}
 						onChange={(e) => setOutputLang(e.target.value)}
 					/>
 				</div>
 
-				<button type="submit" className="btn bg-blue-500 p-2 mt-2 rounded-xl">
-					Translate
+				<button className="btn bg-blue-500" type="submit">
+					translate
 				</button>
 			</form>
-			<pre>{JSON.stringify(outputText)}</pre>
+
+			<div>
+				<p>Result:</p>
+				<pre style={{ whiteSpace: "pre-wrap" }} className="w-full">
+					{JSON.stringify(outputText, null, 2)}
+				</pre>
+			</div>
 
 			<button
-				className="btn bg-blue-500 p-2 mt-2 rounded-xl"
+				className="btn bg-blue-500"
+				type="button"
 				onClick={async () => {
-					const res = await getTranslations();
-					setTranslations(res);
+					const rtnValue = await getUsersTranslations();
+					setTranslations(rtnValue);
 				}}
 			>
-				Get translations
+				getTranslations
 			</button>
-			<pre className="w-full" style={{ whiteSpace: "pre-wrap" }}>
-				{JSON.stringify(translations)}
-			</pre>
-		</div>
+			<div className="flex flex-col space-y-1 p-1">
+				{translations.map((item) => (
+					<div
+						className="flex flex-row justify-between space-x-1 bg-slate-400"
+						key={item.requestId}
+					>
+						<p>
+							{item.sourceLang}/{item.sourceText}
+						</p>
+						<p>
+							{item.targetLang}/{item.targetText}
+						</p>
+						<button
+							className="btn p-2 bg-red-500 hover:bg-red-300 rounded-md"
+							type="button"
+							onClick={async () => {
+								const rtnValue = await deleteUserTranslation(item.requestId);
+								setTranslations(rtnValue);
+							}}
+						>
+							X
+						</button>
+					</div>
+				))}
+			</div>
+		</main>
 	);
 }

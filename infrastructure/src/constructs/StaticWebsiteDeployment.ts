@@ -65,6 +65,7 @@ export class StaticWebsiteDeploymentService extends Construct {
 			destinationBucket: bucket,
 			distribution: distribution,
 			distributionPaths: ["/*"],
+			memoryLimit: 512,
 		});
 
 		new route53.ARecord(this, "route53Domain", {

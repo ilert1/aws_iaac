@@ -7,7 +7,7 @@ import {
 	TranslationService,
 	UserAuthSupportService,
 } from "../constructs";
-import { getConfig, lambdaLayersDirPath, lambdasDirPath } from "../helpers";
+import { getConfig } from "../helpers";
 
 const config = getConfig();
 
@@ -37,6 +37,7 @@ export class TranslatorServiceStack extends cdk.Stack {
 			apiUrl,
 			certificate,
 			zone,
+			userPool: userAuth.userPool,
 		});
 
 		new TranslationService(this, "translationService", {

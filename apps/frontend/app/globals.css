@@ -21,6 +21,10 @@
 } */
 
 body {
-  background: #adadad;
-  color: var(--foreground);
+	background: #adadad;
+	color: var(--foreground);
+}
+
+button {
+	cursor: pointer;
 }
