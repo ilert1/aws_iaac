@@ -1,6 +1,6 @@
 import * as dynamoDb from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { ITranslateDbObject } from "@sff/shared-types";
+import { ITranslateDbResult, ITranslatePrimaryKey } from "@sff/shared-types";
 
 interface TranslationTableProps {
 	tableName: string;
@@ -21,7 +21,7 @@ export class TranslationTable {
 		this.dynamoDbClient = new dynamoDb.DynamoDBClient({});
 	}
 
-	async insert(data: ITranslateDbObject) {
+	async insert(data: ITranslateDbResult) {
 		const tableInsertCmd: dynamoDb.PutItemCommandInput = {
 			TableName: this.tableName,
 			Item: marshall(data),
@@ -30,17 +30,17 @@ export class TranslationTable {
 		await this.dynamoDbClient.send(new dynamoDb.PutItemCommand(tableInsertCmd));
 	}
 
-	async delete(username: string, requestId: string) {
+	async delete(item: ITranslatePrimaryKey) {
 		const deleteCmd: dynamoDb.DeleteItemCommandInput = {
 			TableName: this.tableName,
 			Key: {
-				[this.partitionKey]: { S: username },
-				[this.sortKey]: { S: requestId },
+				[this.partitionKey]: { S: item.username },
+				[this.sortKey]: { S: item.requestId },
 			},
 		};
 
 		await this.dynamoDbClient.send(new dynamoDb.DeleteItemCommand(deleteCmd));
-		return this.query(username);
+		return item;
 	}
 
 	async query(username: string) {
@@ -64,7 +64,7 @@ export class TranslationTable {
 			return [];
 		}
 
-		return Items.map((item) => unmarshall(item) as ITranslateDbObject);
+		return Items.map((item) => unmarshall(item) as ITranslateDbResult);
 	}
 
 	async getAll() {
@@ -80,6 +80,6 @@ export class TranslationTable {
 			return [];
 		}
 
-		return Items.map((item) => unmarshall(item) as ITranslateDbObject);
+		return Items.map((item) => unmarshall(item) as ITranslateDbResult);
 	}
 }

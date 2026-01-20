@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import {
-	ITranslateDbObject,
+	ITranslateDbResult,
 	ITranslateRequest,
 	ITranslateResponse,
 } from "@sff/shared-types";
@@ -86,7 +86,7 @@ async function getUsersTranslations() {
 			},
 		});
 
-		return (await response.json()) as ITranslateDbObject[];
+		return (await response.json()) as ITranslateDbResult[];
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {
 		console.error(error);
@@ -107,7 +107,7 @@ async function deleteUserTranslation(id: string) {
 			body: JSON.stringify({ requestId: id }),
 		});
 
-		return (await response.json()) as ITranslateDbObject[];
+		return (await response.json()) as ITranslateDbResult[];
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {
 		console.error(error);
@@ -120,7 +120,7 @@ export default function Home() {
 	const [inputLang, setInputLang] = useState("");
 	const [outputLang, setOutputLang] = useState("");
 	const [outputText, setOutputText] = useState<ITranslateResponse | null>(null);
-	const [translations, setTranslations] = useState<ITranslateDbObject[]>([]);
+	const [translations, setTranslations] = useState<ITranslateDbResult[]>([]);
 
 	return (
 		<main className="flex flex-col m-8">
