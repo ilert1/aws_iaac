@@ -129,9 +129,10 @@ export const userTranslate: lambda.APIGatewayProxyHandler = async function (
 			...translateData,
 			...rtnData,
 		};
+
 		translateTable.insert(tableObj);
 
-		return gateway.createSuccessJsonResponse(JSON.stringify(rtnData));
+		return gateway.createSuccessJsonResponse(JSON.stringify(tableObj));
 	} catch (error: any) {
 		console.log(error);
 		return gateway.createErrorJsonResponse(JSON.stringify(error.toString()));
