@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConfigureAmplify, Provider } from "@/src/components";
+import { toast } from "sonner";
+import { Navbar } from "@/src/components/Navbar";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -32,10 +34,11 @@ export default function RootLayout({
 				<ConfigureAmplify />
 
 				<Provider>
-					<div className="flex gap-2 px-4 py-2 bg-orange-400">
+					{/* <div className="flex gap-2 px-4 py-2 bg-orange-400">
 						<Link href="/">Home</Link>
 						<Link href="/user">User</Link>
-					</div>
+					</div> */}
+					<Navbar />
 					{children}
 				</Provider>
 			</body>

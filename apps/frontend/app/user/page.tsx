@@ -2,14 +2,17 @@
 import { LoginForm } from "@/src/components";
 import { getCurrentUser, signOut } from "aws-amplify/auth";
 import { useEffect, useState } from "react";
+import { useUser } from "@/src/hooks";
 
 function Logout({ onSignedOut }: { onSignedOut: () => void }) {
+	const { logout } = useUser();
+
 	return (
 		<div className="flex w-full">
 			<button
 				className="btn bg-blue-500 w-full"
 				onClick={async () => {
-					await signOut();
+					await logout();
 					onSignedOut();
 				}}
 			>
