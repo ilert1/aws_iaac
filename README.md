@@ -60,7 +60,7 @@ The application is built using a **serverless architecture**:
 - Infrastructure fully managed using **AWS CDK**
 - No dedicated servers required
 
-![Flow](./screenshots/Flow.png)
+![Flow](./screenshots/FLow.png)
 
 ---
 
