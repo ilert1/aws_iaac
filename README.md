@@ -1,6 +1,6 @@
 # 🌍 Language Translator — Full-Stack Serverless Application
 
-A full-stack language translation application built with **Next.js**, **TypeScript**, and **AWS CDK** during a Udemy course and further refined independently.  
+A full-stack language translation application built with **Next.js**, **TypeScript**, and **AWS CDK** during a Udemy course and further refined independently and will be refined.
 The application enables users to translate text between multiple languages using AWS cloud services and a fully serverless architecture.
 
 🎓 **Udemy Certificate**  
