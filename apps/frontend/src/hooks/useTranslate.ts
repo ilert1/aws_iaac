@@ -6,7 +6,7 @@ import { ITranslateRequest } from "@sff/shared-types";
 import { useAppContext } from "../components";
 
 export const useTranslate = () => {
-	const { user, setError } = useAppContext();
+	const { user, setError, setSelectedTranslation } = useAppContext();
 	const queryClient = useQueryClient();
 	const queryKey = ["translate", user ? user.userId : ""];
 
@@ -39,6 +39,7 @@ export const useTranslate = () => {
 					translateQuery.data.concat([result]),
 				);
 			}
+			setSelectedTranslation(result);
 		},
 		onError: (e) => {
 			setError(e.message);

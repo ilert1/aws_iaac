@@ -6,3 +6,4 @@ export * from "./input";
 export * from "./label";
 export * from "./sonner";
 export * from "./textarea";
+export * from "./resizable";

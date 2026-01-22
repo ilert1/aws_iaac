@@ -3,6 +3,7 @@ import { confirmSignUp } from "aws-amplify/auth";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { IRegisterConfirmation, ISignUpState } from "../lib";
 import { useUser } from "../hooks";
+import { Button, Input, Label } from "./ui";
 
 export const ConfirmSignUp = ({
 	onStepChange,
@@ -15,7 +16,7 @@ export const ConfirmSignUp = ({
 		formState: { errors },
 	} = useForm<IRegisterConfirmation>();
 
-	const { confirmRegister } = useUser();
+	const { confirmRegister, busy } = useUser();
 
 	const onSubmit: SubmitHandler<IRegisterConfirmation> = async (data) => {
 		try {
@@ -30,8 +31,9 @@ export const ConfirmSignUp = ({
 	return (
 		<form className="flex flex-col space-y-4" onSubmit={handleSubmit(onSubmit)}>
 			<div>
-				<label htmlFor="email">Email:</label>
-				<input
+				<Label htmlFor="email">Email:</Label>
+				<Input
+					disabled={busy}
 					className="bg-white"
 					id="email"
 					{...register("email", { required: true })}
@@ -40,8 +42,9 @@ export const ConfirmSignUp = ({
 			</div>
 
 			<div>
-				<label htmlFor="verificationCode">Verification Code:</label>
-				<input
+				<Label htmlFor="verificationCode">Verification Code:</Label>
+				<Input
+					disabled={busy}
 					className="bg-white"
 					id="verificationCode"
 					type="string"
@@ -50,9 +53,9 @@ export const ConfirmSignUp = ({
 				{errors.verificationCode && <span>field is required</span>}
 			</div>
 
-			<button className="btn bg-blue-500" type="submit">
-				{"confirm"}
-			</button>
+			<Button disabled={busy} type="submit">
+				{busy ? "Confirming..." : "Confirm"}
+			</Button>
 		</form>
 	);
 };

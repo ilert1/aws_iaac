@@ -21,6 +21,10 @@ export async function translateUsersText(request: ITranslateRequest) {
 			},
 		});
 
+		if (!response.ok) {
+			throw new Error((await response.json()).message);
+		}
+
 		return (await response.json()) as ITranslateDbResult;
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {
@@ -35,6 +39,10 @@ export async function translatePublicText(request: ITranslateRequest) {
 			method: "POST",
 			body: JSON.stringify(request),
 		});
+
+		if (!response.ok) {
+			throw new Error((await response.json()).message);
+		}
 
 		return (await response.json()) as ITranslateDbResult;
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any

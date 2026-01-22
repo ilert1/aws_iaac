@@ -1,48 +1,56 @@
 "use client";
+import React, { useContext, createContext, useState } from "react";
+import { ITranslateDbResult } from "@sff/shared-types";
+import { IAuthUser } from "../lib";
+import { toast } from "sonner";
 
-import { useContext, createContext, useState, useMemo } from "react";
-import { toast, Toaster } from "sonner";
-import { IAuthUser } from "@/src/lib/types";
-
-interface IAppContext {
+type IAppContext = {
 	user: IAuthUser | null | undefined;
-	setUser: (user: IAuthUser | null | undefined) => void;
+	setUser: (user: IAuthUser | null) => void;
 	setError: (msg: string) => void;
 	resetError: () => void;
-}
+	selectedTranslation: ITranslateDbResult | null;
+	setSelectedTranslation: (item: ITranslateDbResult) => void;
+};
 
-const AppContext = createContext<IAppContext | null>({
-	user: undefined,
+const AppContext = createContext<IAppContext>({
+	user: null,
 	setUser: (user) => {},
 	setError: (msg) => {},
 	resetError: () => {},
+	selectedTranslation: null,
+	setSelectedTranslation: (item: ITranslateDbResult) => {},
 });
 
-export const AppProvider = ({ children }: { children: React.ReactNode }) => {
+function useInitialApp(): IAppContext {
+	const [selectedTranslation, setSelectedTranslation] =
+		useState<ITranslateDbResult | null>(null);
 	const [user, setUser] = useState<IAuthUser | null | undefined>(undefined);
 
-	const initialValue = useMemo(
-		() => ({
-			user,
-			setUser,
-			setError: (msg: string) => {
-				toast.error("Error", { description: msg });
-			},
-			resetError: () => {
-				console.error("Clear error");
-				toast.dismiss();
-			},
-		}),
-		[user],
-	);
+	return {
+		user,
+		setUser,
+		setError: (msg) => {
+			// console.error(msg);
+			toast.error("Error", {
+				description: msg,
+			});
+		},
+		resetError: () => {
+			// console.error("clear error");
+			toast.dismiss();
+		},
+		selectedTranslation,
+		setSelectedTranslation,
+	};
+}
 
+export function AppProvider({ children }: { children: React.ReactNode }) {
+	const initialValue = useInitialApp();
 	return (
-		<AppContext.Provider value={initialValue as IAppContext}>
-			{children}
-			<Toaster />
-		</AppContext.Provider>
+		<AppContext.Provider value={initialValue}>{children}</AppContext.Provider>
 	);
-};
+}
 
 export const useAppContext = () => {
 	const context = useContext(AppContext);

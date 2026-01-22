@@ -1,42 +1,63 @@
 "use client";
 import { useTranslate } from "@/src/hooks";
-import { TranslateRequestForm } from "@/src/components";
+import {
+	TranslateCard,
+	TranslateRequestForm,
+	useAppContext,
+} from "@/src/components";
+import {
+	ResizableHandle,
+	ResizablePanel,
+	ResizablePanelGroup,
+} from "@/src/components/ui";
+import { createRef, useEffect } from "react";
+import { ImperativePanelHandle } from "react-resizable-panels";
+import { LoadingPage } from "@/src/components/loading";
 
 export default function Home() {
 	const { translations, isLoading, deleteTranslation, isDeletingTranslation } =
 		useTranslate();
+	const { user, selectedTranslation, setSelectedTranslation } = useAppContext();
+	const leftPanelRef = createRef<ImperativePanelHandle>();
+
+	useEffect(() => {
+		if (!leftPanelRef.current) {
+			return;
+		}
+
+		if (user) {
+			leftPanelRef.current.expand();
+		} else {
+			leftPanelRef.current.collapse();
+		}
+	}, [leftPanelRef, user]);
 
 	if (isLoading) {
-		return <p>Loading...</p>;
+		return <LoadingPage />;
 	}
 
 	return (
-		<main className="flex flex-col m-8">
-			<TranslateRequestForm />
-			<div className="flex flex-col space-y-1 p-1">
-				{translations.map((item) => (
-					<div
-						className="flex flex-row justify-between space-x-1 bg-slate-400"
-						key={item.requestId}
-					>
-						<p>
-							{item.sourceLang}/{item.sourceText}
-						</p>
-						<p>
-							{item.targetLang}/{item.targetText}
-						</p>
-						<button
-							className="btn p-2 bg-red-500 hover:bg-red-300 rounded-md"
-							type="button"
-							onClick={async () => {
-								deleteTranslation(item.requestId);
-							}}
-						>
-							{isDeletingTranslation ? "..." : "X"}
-						</button>
+		<main className="flex flex-col m-8 h-full">
+			<ResizablePanelGroup direction="horizontal">
+				<ResizablePanel collapsible ref={leftPanelRef}>
+					<div className="bg-gray-900 w-full h-full flex flex-col space-y-1 p-1">
+						{translations.map((item) => (
+							<TranslateCard
+								selected={item.requestId === selectedTranslation?.requestId}
+								onSelected={setSelectedTranslation}
+								key={item.requestId}
+								translateItem={item}
+							/>
+						))}
 					</div>
-				))}
-			</div>
+				</ResizablePanel>
+				<ResizableHandle withHandle />
+				<ResizablePanel>
+					<div className="p-4">
+						<TranslateRequestForm />
+					</div>
+				</ResizablePanel>
+			</ResizablePanelGroup>
 		</main>
 	);
 }

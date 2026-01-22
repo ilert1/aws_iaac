@@ -3,6 +3,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { useTranslate, useUser } from "../hooks";
 import { IRegisterFormData, ISignUpState } from "../lib";
 import Link from "next/link";
+import { Button, Input, Label } from "./ui";
 
 export const RegisterForm = ({
 	onStepChange,
@@ -10,7 +11,7 @@ export const RegisterForm = ({
 	onStepChange: (step: ISignUpState) => void;
 }) => {
 	const { translate, isTranslating } = useTranslate();
-	const { register: accountRegister } = useUser();
+	const { register: accountRegister, busy } = useUser();
 
 	const {
 		register,
@@ -35,8 +36,9 @@ export const RegisterForm = ({
 	return (
 		<form className="flex flex-col space-y-4" onSubmit={handleSubmit(onSubmit)}>
 			<div>
-				<label htmlFor="email">E-mail:</label>
-				<input
+				<Label htmlFor="email">E-mail:</Label>
+				<Input
+					disabled={busy}
 					id="email"
 					{...register("email", { required: true })}
 					className="bg-white"
@@ -45,8 +47,9 @@ export const RegisterForm = ({
 			</div>
 
 			<div>
-				<label htmlFor="password">Password:</label>
-				<input
+				<Label htmlFor="password">Password:</Label>
+				<Input
+					disabled={busy}
 					id="password"
 					className="bg-white"
 					type="password"
@@ -58,8 +61,9 @@ export const RegisterForm = ({
 			</div>
 
 			<div>
-				<label htmlFor="passwordConfirmation">Retype password:</label>
-				<input
+				<Label htmlFor="passwordConfirmation">Retype password:</Label>
+				<Input
+					disabled={busy}
 					id="passwordConfirmation"
 					className="bg-white"
 					type="password"
@@ -70,12 +74,9 @@ export const RegisterForm = ({
 				)}
 			</div>
 
-			<button className="btn bg-blue-500" type="submit">
-				{"Register"}
-			</button>
-			<Link className="hover:underline" href={"/user"}>
-				Login
-			</Link>
+			<Button disabled={busy} type="submit">
+				{busy ? "Registering..." : "Register"}
+			</Button>
 		</form>
 	);
 };
