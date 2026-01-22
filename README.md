@@ -11,7 +11,7 @@ The application enables users to translate text between multiple languages using
 ## 🚀 Live Demo
 
 The application is fully deployed and accessible online.  
-🔗 **Production URL:** _add link here_
+🔗 **Production URL:** https://translateappdemo.site/
 
 ---
 
