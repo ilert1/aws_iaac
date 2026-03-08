@@ -1,0 +1,8 @@
+# Copy this file to terraform.tfvars and fill in your values.
+# terraform.tfvars is gitignored — never commit real credentials.
+
+aws_account_id = "359671834320"
+aws_region     = "us-east-1"
+domain         = "example.com"
+api_subdomain  = "api"
+web_subdomain  = "www"
